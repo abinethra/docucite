@@ -5,9 +5,7 @@ import tiktoken
 from app.config import settings
 
 def extract_text_from_pdf(pdf_path: str) -> List[Dict[str, Any]]:
-    """Extracts text page by page from a PDF file using pypdf.
-    Gracefully handles empty or scanned pages by recording empty strings.
-    """
+    """Extracts text page by page from a PDF file using pypdf."""
     if not os.path.exists(pdf_path):
         raise FileNotFoundError(f"PDF file not found: {pdf_path}")
         
@@ -17,7 +15,7 @@ def extract_text_from_pdf(pdf_path: str) -> List[Dict[str, Any]]:
     for page_num, page in enumerate(reader.pages, start=1):
         text = page.extract_text()
         if not text or not text.strip():
-            text = ""  # Graceful fallback for empty or scanned image-only pages
+            text = ""  # Fallback for scanned or empty pages
             
         pages_data.append({
             "page": page_num,
@@ -27,9 +25,7 @@ def extract_text_from_pdf(pdf_path: str) -> List[Dict[str, Any]]:
     return pages_data
 
 def chunk_text(pages_data: List[Dict[str, Any]], filename: str, chunk_tokens: int = 500, overlap: int = 50) -> List[Dict[str, Any]]:
-    """Chunks page text into token-sized segments with overlap,
-    retaining metadata: file, page, chunk_index.
-    """
+    """Chunks page text into token-sized segments with overlap and metadata."""
     encoding = tiktoken.get_encoding("cl100k_base")
     all_chunks = []
     
@@ -66,7 +62,6 @@ def chunk_text(pages_data: List[Dict[str, Any]], filename: str, chunk_tokens: in
     return all_chunks
 
 def process_pdf(pdf_path: str) -> List[Dict[str, Any]]:
-    """Full pipeline: extract page text and split into configured chunks."""
     filename = os.path.basename(pdf_path)
     pages = extract_text_from_pdf(pdf_path)
     chunks = chunk_text(

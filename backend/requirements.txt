@@ -4,8 +4,9 @@ pydantic-settings==2.2.0
 python-dotenv==1.0.1
 sqlalchemy==2.0.29
 psycopg2-binary==2.9.9
-chromadb==0.5.5
 google-genai==0.1.0
 pypdf==4.1.0
 tiktoken==0.6.0
 pytest==8.1.1
+numpy==1.26.4
+python-multipart==0.0.9

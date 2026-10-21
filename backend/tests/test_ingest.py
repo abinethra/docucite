@@ -5,7 +5,6 @@ from app.ingest import extract_text_from_pdf, chunk_text
 @patch("app.ingest.os.path.exists", return_value=True)
 @patch("app.ingest.PdfReader")
 def test_extract_text_from_pdf(mock_pdf_reader, mock_exists):
-    """Test that text is correctly extracted page by page."""
     mock_page = MagicMock()
     mock_page.extract_text.return_value = "Sample text from PDF page."
     mock_pdf_reader.return_value.pages = [mock_page]
@@ -17,7 +16,6 @@ def test_extract_text_from_pdf(mock_pdf_reader, mock_exists):
     assert pages[0]["text"] == "Sample text from PDF page."
 
 def test_chunk_text():
-    """Test that text chunking correctly preserves metadata and overlap."""
     pages_data = [
         {"page": 1, "text": "This is a test document used to verify chunking behavior in DocuCite."}
     ]
