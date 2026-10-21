@@ -1,8 +1,10 @@
 import os
 from fastapi import FastAPI, UploadFile, File, HTTPException, status
+from pydantic import BaseModel
 from app.config import settings
 from app.ingest import process_pdf, chunk_text
 from app.vector_store import add_chunks_to_vector_store, list_stored_documents
+from app.retrieval import answer_question
 
 app = FastAPI(
     title="DocuCite API",
@@ -12,8 +14,12 @@ app = FastAPI(
 
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB limit
 
+class ChatRequest(BaseModel):
+    question: str
+
 @app.get("/health", tags=["Health"])
 async def health_check():
+    """Verify that the API is running and configuration is accessible."""
     return {
         "status": "healthy",
         "app": "DocuCite API",
@@ -22,6 +28,7 @@ async def health_check():
 
 @app.post("/documents", tags=["Documents"])
 async def upload_document(file: UploadFile = File(...)):
+    """Upload a PDF or TXT document, validate size and type, chunk, embed, and store locally."""
     filename = file.filename or "unknown"
     ext = filename.split(".")[-1].lower()
     
@@ -63,8 +70,21 @@ async def upload_document(file: UploadFile = File(...)):
 
 @app.get("/documents", tags=["Documents"])
 async def get_documents():
+    """List all uploaded documents currently stored in the vector index."""
     documents = list_stored_documents()
     return {
         "documents": documents,
         "count": len(documents)
     }
+
+@app.post("/chat", tags=["Chat"])
+async def chat_endpoint(request: ChatRequest):
+    """Ask a question against your uploaded documents using RAG and Gemini."""
+    if not request.question.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Question cannot be empty."
+        )
+        
+    result = answer_question(request.question)
+    return result

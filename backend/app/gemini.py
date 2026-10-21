@@ -5,7 +5,7 @@ from google.genai import types
 from app.config import settings
 
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
-EMBEDDING_MODEL = "gemini-embedding-001"  # Updated to current stable embedding model
+EMBEDDING_MODEL = "gemini-embedding-001"
 
 def embed_documents(texts: List[str]) -> List[List[float]]:
     """Embeds a list of document texts using Gemini with RETRIEVAL_DOCUMENT task type.
@@ -54,7 +54,8 @@ def embed_query(text: str) -> List[float]:
                 contents=text,
                 config=types.EmbedContentConfig(task_type="RETRIEVAL_QUERY")
             )
-            return response.embedding.values
+            # Access response.embeddings[0] since EmbedContentResponse uses plural 'embeddings'
+            return response.embeddings[0].values
         except Exception as e:
             if attempt == retries - 1:
                 raise RuntimeError(f"Query embedding failed after retries: {str(e)}")
