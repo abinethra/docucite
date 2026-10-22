@@ -46,14 +46,20 @@ def answer_question(question: str) -> Dict[str, Any]:
     prompt = f"Context:\n{context_str}\nQuestion: {question}\nAnswer:"
     
     # 5. Call Gemini chat model
-    response = client.models.generate_content(
-        model=CHAT_MODEL,
-        contents=prompt,
-        config={
-            "system_instruction": SYSTEM_PROMPT,
-            "temperature": 0.2
-        }
-    )
+    from google.genai.errors import ServerError
+    from fastapi import HTTPException
+
+    # Inside your answer_question function:
+    try:
+        response = client.models.generate_content(
+            model="gemini-flash-latest",
+            contents=prompt,
+        )
+    except ServerError:
+        raise HTTPException(
+            status_code=503,
+            detail="The AI model is currently experiencing high demand. Please wait a few seconds and try your question again."
+        )
     
     return {
         "answer": response.text,
